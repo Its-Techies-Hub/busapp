@@ -10,7 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: busapp/busapp-webapp
     steps:
     # Step 1: Checkout repository
     - name: Checkout code

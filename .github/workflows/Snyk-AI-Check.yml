@@ -35,8 +35,13 @@ jobs:
     #   run: npm test
 
     # Step 6: Free AI code review (GitHub Copilot CLI trial)
-    - name: AI Code Review
+    # - name: AI Code Review
+    #   run: |
+    #     echo "POC AI Review Placeholder"
+    #     npm install -g @githubnext/github-copilot-cli
+    #     copilot review ./src --summary
+    - name: AI Code Review (Copilot CLI)
       run: |
-        echo "POC AI Review Placeholder"
         npm install -g @githubnext/github-copilot-cli
-        copilot review ./src --summary
+        npx copilot review ./src --summary
+

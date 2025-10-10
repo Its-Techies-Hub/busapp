@@ -37,7 +37,7 @@ jobs:
           sarif_file: snyk.sarif
 
       - name: Run Snyk Code AI scan
-        uses: snyk/actions/code@master
+        uses: snyk/actions@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:

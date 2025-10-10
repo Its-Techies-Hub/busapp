@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js (example)
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -23,6 +23,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # Dependency Vulnerability Scan (non-blocking)
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
         continue-on-error: true
@@ -37,19 +38,21 @@ jobs:
         with:
           sarif_file: snyk.sarif
 
+      # AI / Code Security Scan (non-blocking)
       - name: Run Snyk Code AI scan
-        uses: snyk/actions@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: code test
         run: |
           npx snyk code test --json-file-output=snyk-code.json --report || echo "Snyk Code scan completed with issues"
-          # args: --json-file-output=snyk-code.json --report
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Debug - Verify file creation
+        run: ls -la
+        if: always()
 
       - name: Upload Snyk AI Code Report as artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: snyk-ai-report
           path: snyk-code.json

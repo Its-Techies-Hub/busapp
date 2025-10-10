@@ -1,30 +1,50 @@
-name: Open Source AI Code Quality
+name: Snyk Security Scan
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
-  code_quality:
+  snyk-security:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.x"
+      - name: Set up Node.js (example)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-    - name: Install linters & AI tools
-      run: |
-        pip install semgrep codereviewgpt
+      - name: Install dependencies
+        run: npm install
 
-    - name: Run Semgrep (static + ML rules)
-      run: semgrep --config auto
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --sarif-file-output=snyk.sarif
 
-    - name: Run CodeReviewGPT (open AI review)
-      run: codereviewgpt analyze --path ./src
+      - name: Upload Snyk SARIF results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
+
+      - name: Run Snyk Code AI scan
+        uses: snyk/actions/code@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: code test
+          args: --json-file-output=snyk-code.json --report
+
+      - name: Upload Snyk AI Code Report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-ai-report
+          path: snyk-code.json

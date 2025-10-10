@@ -10,9 +10,6 @@ on:
 jobs:
   code_quality:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: busapp/busapp-webapp
 
     steps:
     - uses: actions/checkout@v3

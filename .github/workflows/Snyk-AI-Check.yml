@@ -37,22 +37,43 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
-
-      # AI / Code Security Scan (non-blocking)
+      - name: Install Snyk CLI globally
+        run: npm install -g snyk
+      
       - name: Run Snyk Code AI scan
+        working-directory: .  # change if your code is in a subfolder
         run: |
-          npx snyk code test --json-file-output=snyk-code.json --report || echo "Snyk Code scan completed with issues"
+          snyk code test --json-file-output=snyk-code.json --report || echo "Snyk Code scan completed with issues"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
-
+      
       - name: Debug - Verify file creation
         run: ls -la
         if: always()
-
+      
       - name: Upload Snyk AI Code Report as artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: snyk-ai-report
           path: snyk-code.json
+
+      # # AI / Code Security Scan (non-blocking)
+      # - name: Run Snyk Code AI scan
+      #   run: |
+      #     npx snyk code test --json-file-output=snyk-code.json --report || echo "Snyk Code scan completed with issues"
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #   continue-on-error: true
+
+      # - name: Debug - Verify file creation
+      #   run: ls -la
+      #   if: always()
+
+      # - name: Upload Snyk AI Code Report as artifact
+      #   uses: actions/upload-artifact@v4
+      #   if: always()
+      #   with:
+      #     name: snyk-ai-report
+      #     path: snyk-code.json

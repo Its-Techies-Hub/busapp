@@ -1,4 +1,4 @@
-name: AI Code Review
+name: Open Source AI Code Quality
 
 on:
   push:
@@ -8,40 +8,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  code_quality:
     runs-on: ubuntu-latest
-  
+    defaults:
+      run:
+        working-directory: busapp/busapp-webapp
+
     steps:
-    # Step 1: Checkout repository
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    # Step 2: Setup Node.js (adjust for your stack)
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        node-version: '18'
+        python-version: "3.x"
 
-    # Step 3: Install dependencies
-    - name: Install dependencies
-      run: npm install
-
-    # # Step 4: Run lint
-    # - name: Run lint
-    #   run: npm run lint
-
-    # # Step 5: Run unit tests
-    # - name: Run unit tests
-    #   run: npm test
-
-    # Step 6: Free AI code review (GitHub Copilot CLI trial)
-    # - name: AI Code Review
-    #   run: |
-    #     echo "POC AI Review Placeholder"
-    #     npm install -g @githubnext/github-copilot-cli
-    #     copilot review ./src --summary
-    - name: AI Code Review (Copilot CLI)
+    - name: Install linters & AI tools
       run: |
-        npm install -g @githubnext/github-copilot-cli
-        npx copilot review ./src --summary
+        pip install semgrep codereviewgpt
 
+    - name: Run Semgrep (static + ML rules)
+      run: semgrep --config auto
+
+    - name: Run CodeReviewGPT (open AI review)
+      run: codereviewgpt analyze --path ./src

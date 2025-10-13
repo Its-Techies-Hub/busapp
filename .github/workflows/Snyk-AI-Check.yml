@@ -23,7 +23,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Dependency Vulnerability Scan (non-blocking)
+      # Dependency Vulnerability Scan 
+      
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
         continue-on-error: true
@@ -39,15 +40,24 @@ jobs:
           sarif_file: snyk.sarif
       - name: Install Snyk CLI globally
         run: npm install -g snyk
+        
+      # AI-powered code scan
       
       - name: Run Snyk Code AI scan
-        working-directory: .  # change if your code is in a subfolder
+        working-directory: .  
         run: |
           snyk code test --json-file-output=snyk-code.json --report || echo "Snyk Code scan completed with issues"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
+        
+      # AI-powered remediation (preview feature)
       
+      - name: Snyk AI Fix Suggestions
+        run: snyk fix --org=<your-org> --json-file-output=snyk-fix.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          
       - name: Debug - Verify file creation
         run: ls -la
         if: always()
@@ -59,21 +69,4 @@ jobs:
           name: snyk-ai-report
           path: snyk-code.json
 
-      # # AI / Code Security Scan (non-blocking)
-      # - name: Run Snyk Code AI scan
-      #   run: |
-      #     npx snyk code test --json-file-output=snyk-code.json --report || echo "Snyk Code scan completed with issues"
-      #   env:
-      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      #   continue-on-error: true
-
-      # - name: Debug - Verify file creation
-      #   run: ls -la
-      #   if: always()
-
-      # - name: Upload Snyk AI Code Report as artifact
-      #   uses: actions/upload-artifact@v4
-      #   if: always()
-      #   with:
-      #     name: snyk-ai-report
-      #     path: snyk-code.json
+     

@@ -11,8 +11,6 @@ pr:
 pool:
   name: 'Azure Pipelines'
 
-variables:
-  NODE_VERSION: '18'
 
 stages:
 - stage: Snyk_Security
@@ -30,7 +28,7 @@ stages:
       - task: NodeTool@0
         displayName: "Setup Node.js"
         inputs:
-          versionSpec: '$(NODE_VERSION)'
+          versionSpec: '18'
 
       # 3. Install Dependencies
       - script: npm install

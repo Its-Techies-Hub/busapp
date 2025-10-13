@@ -13,7 +13,7 @@ pool:
 
 variables:
   NODE_VERSION: '18'
-  SNYK_TOKEN: 'ae5e0426-5de7-4f8f-a5d0-d2176c57f2dd'
+  SNYK_TOKEN: $(SNYK_TOKEN)
 
 stages:
 - stage: Snyk_Security

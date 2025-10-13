@@ -12,8 +12,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  NODE_VERSION: '18'
-  SNYK_TOKEN: 'ae5e0426-5de7-4f8f-a5d0-d2176c57f2dd' 
+- group: Snyk
+ 
 
 stages:
 - stage: Snyk_Security
@@ -31,7 +31,7 @@ stages:
       - task: NodeTool@0
         displayName: "Setup Node.js"
         inputs:
-          versionSpec: '$(NODE_VERSION)'
+          versionSpec: '18'
 
       # 3. Install Dependencies
       - script: npm install

@@ -1,0 +1,87 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  NODE_VERSION: '18'
+  SNYK_TOKEN: $(SNYK_TOKEN)
+
+stages:
+- stage: Snyk_Security
+  displayName: "Snyk Security Scan"
+  jobs:
+  - job: snyk_scan
+    displayName: "Run Snyk Scans"
+    steps:
+
+      # 1. Checkout
+      - task: Checkout@1
+        displayName: "Checkout Code"
+
+      # 2. Setup Node.js
+      - task: NodeTool@0
+        displayName: "Setup Node.js"
+        inputs:
+          versionSpec: '$(NODE_VERSION)'
+
+      # 3. Install Dependencies
+      - script: npm install
+        displayName: "Install NPM Dependencies"
+
+      # 4. Install Snyk CLI
+      - script: npm install -g snyk
+        displayName: "Install Snyk CLI"
+
+      # 5. Dependency Vulnerability Scan (Non-AI)
+      - script: |
+          snyk test --sarif-file-output=snyk.sarif || echo "Snyk Dependency Scan completed with issues"
+        displayName: "Run Snyk Dependency Scan"
+        env:
+          SNYK_TOKEN: $(SNYK_TOKEN)
+
+      # 6. Publish SARIF Results
+      - task: PublishCodeAnalysisResults@1
+        displayName: "Publish Snyk SARIF Report"
+        inputs:
+          codeAnalysisTool: 'Snyk'
+          sarifFile: 'snyk.sarif'
+          failIfAnalysisEmpty: false
+
+      # 7. AI-Powered Code Analysis (Snyk Code)
+      - script: |
+          snyk code test \
+            --project-name=its-techies-hub \
+            --json-file-output=snyk-code.json \
+            --report || echo "Snyk Code scan completed with issues"
+        displayName: "Run Snyk Code AI Scan"
+        env:
+          SNYK_TOKEN: $(SNYK_TOKEN)
+
+      # 8. AI-Powered Remediation (Preview)
+      - script: |
+          snyk fix --org=its-techies-hub --dry-run | tee snyk-fix.txt || echo "Snyk Fix completed with issues"
+        displayName: "Run Snyk AI Fix Suggestions"
+        env:
+          SNYK_TOKEN: $(SNYK_TOKEN)
+
+      # 9. Publish AI Scan Artifacts
+      - task: PublishPipelineArtifact@1
+        displayName: "Upload Snyk AI Code Report"
+        inputs:
+          targetPath: 'snyk-code.json'
+          artifact: 'snyk-ai-code-report'
+
+      - task: PublishPipelineArtifact@1
+        displayName: "Upload Snyk AI Fix Report"
+        inputs:
+          targetPath: 'snyk-fix.txt'
+          artifact: 'snyk-ai-fix-report'

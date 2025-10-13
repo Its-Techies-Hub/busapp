@@ -64,7 +64,7 @@ jobs:
       # 4. AI-Powered Remediation (Preview)
       
       - name: Run Snyk AI Fix Suggestions
-        run: snyk fix --org=its-techies-hub --json-file-output=snyk-fix.json
+        run: snyk fix --org=its-techies-hub --dry-run | tee snyk-fix.txt || echo "Snyk Fix completed with issues"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true

@@ -58,7 +58,7 @@ jobs:
             --report || echo "Snyk Code scan completed with issues"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-       # continue-on-error: true
+        continue-on-error: true
 
       
       # 4. AI-Powered Remediation (Preview)

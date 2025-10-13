@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      
+      # 1. Setup Environment
+     
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -23,9 +26,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Dependency Vulnerability Scan 
+      - name: Install Snyk CLI globally
+        run: npm install -g snyk
+
       
-      - name: Run Snyk to check for vulnerabilities
+      # 2. Dependency Vulnerability Scan (non-AI)
+      
+      - name: Run Snyk Dependency Scan
         uses: snyk/actions/node@master
         continue-on-error: true
         env:
@@ -34,39 +41,50 @@ jobs:
           command: test
           args: --sarif-file-output=snyk.sarif
 
-      - name: Upload Snyk SARIF results to GitHub
+      - name: Upload Dependency Scan Results to GitHub (SARIF)
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
-      - name: Install Snyk CLI globally
-        run: npm install -g snyk
-        
-      # AI-powered code scan
-      
-      - name: Run Snyk Code AI scan
-        working-directory: .  
+
+     
+      # 3. AI-Powered Code Analysis (Snyk Code)
+     
+      - name: Run Snyk Code AI Scan
+        working-directory: .
         run: |
-          snyk code test --json-file-output=snyk-code.json --report || echo "Snyk Code scan completed with issues"
+          snyk code test \
+            --json-file-output=snyk-code.json \
+            --report || echo "Snyk Code scan completed with issues"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
-        
-      # AI-powered remediation (preview feature)
+
       
-      - name: Snyk AI Fix Suggestions
-        run: snyk fix --org=<your-org> --json-file-output=snyk-fix.json
+      # 4. AI-Powered Remediation (Preview)
+      
+      - name: Run Snyk AI Fix Suggestions
+        run: snyk fix --org=its-techies-hub --json-file-output=snyk-fix.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          
-      - name: Debug - Verify file creation
-        run: ls -la
-        if: always()
+        continue-on-error: true
+
+     
+      # 5. Debug and Artifact Upload
       
-      - name: Upload Snyk AI Code Report as artifact
+      - name: Debug - Verify Generated Files
+        if: always()
+        run: ls -la
+
+      - name: Upload Snyk AI Code Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: snyk-ai-report
+          name: snyk-ai-code-report
           path: snyk-code.json
 
-     
+      - name: Upload Snyk AI Fix Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snyk-ai-fix-report
+          path: snyk-fix.json

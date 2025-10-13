@@ -12,8 +12,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-- group: Snyk
- 
+  SNYK_TOKEN: 'ae5e0426-5de7-4f8f-a5d0-d2176c57f2dd' 
 
 stages:
 - stage: Snyk_Security
@@ -24,7 +23,7 @@ stages:
     steps:
 
       # 1. Checkout
-      - task: Checkout@1
+      - checkout: self
         displayName: "Checkout Code"
 
       # 2. Setup Node.js
@@ -48,14 +47,13 @@ stages:
         env:
           SNYK_TOKEN: $(SNYK_TOKEN)
 
-      # 6. Publish SARIF Results to Azure DevOps
+      # 6. Publish SARIF Results as Artifact
       - task: PublishBuildArtifacts@1
-        displayName: "Publish Snyk SARIF Report as Artifact"
+        displayName: "Publish Snyk SARIF Report"
         inputs:
           pathToPublish: 'snyk.sarif'
           artifactName: 'snyk-sarif-report'
           publishLocation: 'Container'
-
 
       # 7. AI-Powered Code Analysis (Snyk Code)
       - script: |

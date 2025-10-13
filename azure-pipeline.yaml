@@ -49,13 +49,12 @@ stages:
           SNYK_TOKEN: $(SNYK_TOKEN)
 
       # 6. Publish SARIF Results
-      - task: PublishCodeAnalysisResults@1
-        displayName: "Publish Snyk SARIF Report"
+      - task: PublishPipelineArtifact@1
+        displayName: "Upload Snyk SARIF Report"
         inputs:
-          codeAnalysisTool: 'Snyk'
-          sarifFile: 'snyk.sarif'
-          failIfAnalysisEmpty: false
-
+          targetPath: 'snyk.sarif'
+          artifact: 'snyk-sarif-report'
+          
       # 7. AI-Powered Code Analysis (Snyk Code)
       - script: |
           snyk code test \

@@ -11,6 +11,8 @@ pr:
 pool:
   name: 'Azure Pipelines'
 
+variables:
+  NODE_VERSION: '18'
 
 stages:
 - stage: Snyk_Security
@@ -20,68 +22,50 @@ stages:
     displayName: "Run Snyk Scans"
     steps:
 
-      # 1. Checkout
       - task: Checkout@1
         displayName: "Checkout Code"
 
-      # 2. Setup Node.js
       - task: NodeTool@0
         displayName: "Setup Node.js"
         inputs:
           versionSpec: '18'
 
-      # 3. Install Dependencies
       - script: npm install
         displayName: "Install NPM Dependencies"
 
-      # 4. Install Snyk CLI
       - script: npm install -g snyk
         displayName: "Install Snyk CLI"
 
-      # 5. Dependency Vulnerability Scan (Non-AI)
       - script: |
           snyk test --sarif-file-output=snyk.sarif || echo "Snyk Dependency Scan completed with issues"
-          # Ensure SARIF file exists
-          if [ ! -f snyk.sarif ]; then
-            touch snyk.sarif
-          fi
+          if [ ! -f snyk.sarif ]; then touch snyk.sarif; fi
         displayName: "Run Snyk Dependency Scan"
         env:
           SNYK_TOKEN: $(SNYK_TOKEN)
 
-      # 6. Publish SARIF Results (safe)
       - task: PublishPipelineArtifact@1
         displayName: "Upload Snyk SARIF Report"
         inputs:
           targetPath: 'snyk.sarif'
           artifact: 'snyk-sarif-report'
 
-      # 7. AI-Powered Code Analysis (Snyk Code)
       - script: |
           snyk code test \
             --project-name=its-techies-hub \
             --json-file-output=snyk-code.json \
             --report || echo "Snyk Code scan completed with issues"
-          # Ensure JSON file exists
-          if [ ! -f snyk-code.json ]; then
-            echo '{}' > snyk-code.json
-          fi
+          if [ ! -f snyk-code.json ]; then echo '{}' > snyk-code.json; fi
         displayName: "Run Snyk Code AI Scan"
         env:
           SNYK_TOKEN: $(SNYK_TOKEN)
 
-      # 8. AI-Powered Remediation (Preview)
       - script: |
           snyk fix --org=its-techies-hub --dry-run | tee snyk-fix.txt || echo "Snyk Fix completed with issues"
-          # Ensure fix file exists
-          if [ ! -f snyk-fix.txt ]; then
-            touch snyk-fix.txt
-          fi
+          if [ ! -f snyk-fix.txt ]; then touch snyk-fix.txt; fi
         displayName: "Run Snyk AI Fix Suggestions"
         env:
           SNYK_TOKEN: $(SNYK_TOKEN)
 
-      # 9. Publish AI Scan Artifacts
       - task: PublishPipelineArtifact@1
         displayName: "Upload Snyk AI Code Report"
         inputs:

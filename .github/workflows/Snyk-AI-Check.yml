@@ -67,7 +67,7 @@ jobs:
         run: snyk fix --org=its-techies-hub --json-file-output=snyk-fix.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-       # continue-on-error: true
+        continue-on-error: true
 
      
       # 5. Debug and Artifact Upload

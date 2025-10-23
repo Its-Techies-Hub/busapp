@@ -1,0 +1,43 @@
+
+trigger:
+- main
+
+resources:
+- repo: self
+pool:
+      name: Azure Pipeline
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    
+    steps:
+    - task: Docker@2
+      displayName: Build an image
+      inputs:
+        command: build
+        dockerfile: '**/Dockerfile'
+        tags: |
+          $(tag)
+
+    - task: SnykSecurityScan@1
+      inputs:
+        serviceConnectionEndpoint: 'Snyk-Service-Connection'
+        testType: 'container'
+        dockerImageName: '$(tag)'
+        dockerfilePath: '**/Dockerfile'
+        monitorWhen: 'always'
+        failOnIssues: false
+        projectName: 'React-App'
+        organization: '4c0a0d91-d376-4257-a15e-33987080d6ba'
+
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker-Service-Connection'
+        repository: 'techiecp'
+        command: 'push'
